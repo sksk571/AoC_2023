@@ -11,32 +11,60 @@ for (int i = 0; i< hands.Length; ++i)
 
 Console.WriteLine(r1);
 
-hands = data.Select(Hand.ParseCombinatoricHand).ToArray();
-Array.Sort(hands);
+var combinatoricHands = hands.Select(h => new CombinatoricHand(h)).ToArray();
+Array.Sort(combinatoricHands);
 
 int r2 = 0;
-for (int i = 0; i< hands.Length; ++i)
+for (int i = 0; i< combinatoricHands.Length; ++i)
 {
-    r2 += (i + 1) * hands[i].Bid;
+    r2 += (i + 1) * combinatoricHands[i].Bid;
 }
 
 Console.WriteLine(r2);
 
-
-public class CombinatoricHand : Hand
+public class CombinatoricHand : IComparable<CombinatoricHand>
 {
     private static readonly char[] AllCards = { '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'Q', 'K', 'A' };
+    
+    private readonly Hand hand;
 
-    public CombinatoricHand(string cards, int bid) : base(cards, bid)
+    public CombinatoricHand(Hand h)
     {
+        this.hand = h;
+        Bid = h.Bid;
+        Type = GetHandType(Cards);
+    }
+    
+    public char[] Cards => hand.Cards;
+    public HandType Type { get; }
+    public int Bid { get; }
+
+    public int CompareTo(CombinatoricHand? other)
+    {
+        if (other is null) return 0;
+        
+        int typeDiff = (int)Type - (int)other.Type;
+        if (typeDiff != 0)
+            return typeDiff;
+            
+        var cards = Cards;
+        var otherCards = other.Cards;
+        
+        for (int i = 0; i < cards.Length; ++i)
+        {
+            int rankDiff = GetCardRank(cards[i]) - GetCardRank(otherCards[i]);
+            if (rankDiff != 0)
+                return rankDiff;
+        }
+        return 0;
     }
 
-    protected override HandType GetHandType(IEnumerable<char> cards)
+    private static HandType GetHandType(char[] cards)
     {
         char[] newCards = cards.ToArray();
         int i = Array.IndexOf(newCards, 'J');
         if (i == -1)
-            return base.GetHandType(cards);
+            return new Hand(cards, 0).Type;
         HandType maxType = HandType.HighCard;
         foreach (var card in AllCards)
         {
@@ -48,23 +76,36 @@ public class CombinatoricHand : Hand
         return maxType;
     }
 
-    protected override int GetCardRank(char card)
+    private static int GetCardRank(char card)
     {
-        if (card == 'J') return 0;
-        return base.GetCardRank(card);
+        return card switch
+        {
+            'T' => 10,
+            'J' => 0,
+            'Q' => 12,
+            'K' => 13,
+            'A' => 14,
+            _ => card - '0'
+        };
     }
 }
 
 public class Hand : IComparable<Hand>
 {
-    private readonly string cards;
-
+    private readonly char[] cards;
+    
     public Hand(string cards, int bid)
+        : this(cards.ToCharArray(), bid)
+        {
+        }
+
+    public Hand(char[] cards, int bid)
     {
         this.cards = cards;
         Bid = bid;
     }
     
+    public char[] Cards => cards;
     public HandType Type => GetHandType(cards);
     public int Bid { get; }
 
@@ -89,17 +130,6 @@ public class Hand : IComparable<Hand>
     {
         return $"{Type} ({this.cards})";
     }
-  
-    public enum HandType
-    {
-        HighCard = 0,
-        Pair = 1,
-        TwoPairs = 2,
-        ThreeOfAKind = 3,
-        FullHouse = 4,
-        FourOfAKind = 5,
-        FiveOfAKind = 6
-    }
     
     public static Hand Parse(string line)
     {
@@ -107,13 +137,7 @@ public class Hand : IComparable<Hand>
         return new Hand(parts[0], int.Parse(parts[1]));
     }
     
-    public static CombinatoricHand ParseCombinatoricHand(string line)
-    {
-        var parts = line.Split(' ');
-        return new CombinatoricHand(parts[0], int.Parse(parts[1]));
-    }
-    
-    protected virtual HandType GetHandType(IEnumerable<char> cards)
+    private static HandType GetHandType(IEnumerable<char> cards)
     {
         var groups = cards.GroupBy(c => c).Select(g => g.Count()).OrderDescending().ToList();
         return groups switch
@@ -128,7 +152,7 @@ public class Hand : IComparable<Hand>
         };
     }
     
-    protected virtual int GetCardRank(char card)
+    private static int GetCardRank(char card)
     {
         return card switch
         {
@@ -140,4 +164,15 @@ public class Hand : IComparable<Hand>
             _ => card - '0'
         };
     }
+}
+
+public enum HandType
+{
+    HighCard = 0,
+    Pair = 1,
+    TwoPairs = 2,
+    ThreeOfAKind = 3,
+    FullHouse = 4,
+    FourOfAKind = 5,
+    FiveOfAKind = 6
 }
