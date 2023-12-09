@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-
 var data = File.ReadAllLines(@"c:\tmp\input.txt");
 
 var instructions = data[0];
