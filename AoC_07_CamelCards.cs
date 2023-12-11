@@ -96,17 +96,18 @@ public class Hand : IComparable<Hand>
     
     public Hand(string cards, int bid)
         : this(cards.ToCharArray(), bid)
-        {
-        }
+    {
+    }
 
     public Hand(char[] cards, int bid)
     {
         this.cards = cards;
         Bid = bid;
+        Type = GetHandType(cards);
     }
     
     public char[] Cards => cards;
-    public HandType Type => GetHandType(cards);
+    public HandType Type { get; }
     public int Bid { get; }
 
     public int CompareTo(Hand? other)
