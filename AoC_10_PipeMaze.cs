@@ -30,9 +30,8 @@ for (int y = 0; y < grid.Length - 1; ++y)
 {
     bool inside = false;
     for (int x = 0; x < grid[y].Length; ++x)
-    {                
-        if (cycle.Any(e => (e.Item1.x, e.Item2.x) == (x, x) && 
-                ((e.Item1.y, e.Item2.y) == (y, y + 1) || (e.Item1.y, e.Item2.y) == (y + 1, y))))
+    {
+        if (cycle.Contains(((x, y), (x, y + 1))) || cycle.Contains(((x, y + 1), (x, y))))
         {
             inside = !inside;
         }
