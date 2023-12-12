@@ -1,7 +1,5 @@
 var data = File.ReadAllLines(@"c:\tmp\input.txt");
 
-
-
 List<(int x, int y)> galaxies = new();
 List<int> emptyRows = new(), emptyColumns = new();
 
