@@ -12,16 +12,6 @@ foreach (var line in data)
 
 Console.WriteLine(r1);
 
-long r2 = 0;
-foreach (var line in data)
-{
-    string[] parts = line.Split(' ');
-    var pattern = string.Join("?", Enumerable.Range(0, 5).Select(_ => parts[0]));
-    var checks = Enumerable.Range(0, 5).SelectMany(_ => parts[1].Split(",").Select(int.Parse)).ToArray();
-    r2 += Configurations(pattern.ToCharArray(), checks);
-}
-Console.WriteLine(r2);
-
 long Configurations(char[] pattern, int[] checks)
 {
     var (p, n) = Parse(pattern);
